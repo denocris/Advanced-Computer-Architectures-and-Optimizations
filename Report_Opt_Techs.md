@@ -1,4 +1,4 @@
-# Advanced Optimization Techniques: Matrix Multiplications
+# Advanced Optimization Techniques: Matrix Multiplication
 
 ##Introduction and Task
 
@@ -9,14 +9,14 @@ The task of this exercise is to perform a matrix multiplication in *C* using dif
 In particular in what follows we collect timing results which corresponds to $10$ iterations of $100000$ matrix multiplication, $c=a \cdot b$ , of $4 \times 4$ matrices.
 
 
-We will measure performances of the following different approach:
+We will measure the performance of the following different approaches:
 
 - Naive implementation
 - Lapack *cblas_dgemm()*
 - Array notation (AN)
-- Intrinsic approach with AVX
+- Intrinsic with AVX
 
-In the following paragraphs we describe the different approaches and after that we will discuss the results. Before compiling this module are required:
+In the following paragraphs we are going to describe the different approaches and after that we will discuss the performance results. Before compiling the code, these modules are required:
 
 - intel/14.0
 - mkl/11.1
@@ -46,12 +46,12 @@ $mkn = 4$ is the matrix size. To compile the code it is important to insert the 
 ```bash
 icc -mkl=sequential exercise-matmul.cpp
 ```
-This flag is related to the *Lapack* library and `sequential` is required to have the serial implementation. Otherwise the default is `parallel`. Note the presence of the *Intel* compiler `icc`.
+This flag is related to the *Lapack* library and `sequential` is required to have the serial implementation. Otherwise, the library runs by default in parallel. Note the presence of the *Intel* compiler `icc`.
 
 #### Array Notation (AN) Implementation
-The *Intel* complier allows to use an array notation very similar to *Python* or *Matlab* (https://www.cilkplus.org/tutorial-array-notation). The array notation is introduced to help the compiler utilize SIMD (Single Instruction Multiple Data) instruction on *Intel* architecture CPUs by adding more information about the datastructure and to simplify implementation.
+The *Intel* complier allows to use an array notation very similar to *Python* or *Matlab* (https://www.cilkplus.org/tutorial-array-notation). The array notation is introduced to help the compiler utilize SIMD (Single Instruction Multiple Data) instructions on *Intel* architecture CPUs by adding more information about the data structure and to simplify implementation.
 
-To enable auto-vectorization on *Intel* architecture CPUs the flag `-xAVX` is needed. To enable *Array Notation* we also need the flag `-intel-extensions`.
+To enable auto-vectorization on *Intel* architecture CPUs, the flag `-xAVX` is needed. To enable *Array Notation* we also need the flag `-intel-extensions`.
 ```bash
 icc -mkl=sequential -xAVX -intel-extensions exercise-matmul.cpp
 ```
@@ -69,15 +69,15 @@ It is also possible to add the `inline` compiler instruction in front of the voi
 ```c
 inline void matrixmul_mnk_AN(){ ... }
 ```
-This keyword tells the compiler to substitute the code within the function definition for every instance of a function call (it is exactly as wrinting the instructions without putting them into the function body). This is useful for small functions and it avoids conditional jumps in the assembly code gaining thus performance.
+This keyword tells the compiler to substitute the code within the function definition for every instance of a function call (it is exactly as wrinting the instructions without putting them into the function body). This is useful for small functions and it avoids conditional jumps in the assembly code, thus gaining performance.
 
 #### AVX Intrinsic Implementation
 
-An intrinsic function is a function available for use in a given programming language whose implementation is handled specially by the compiler and directly gives insructions to registers and ALUs. It is useful to control the work flow inside the CPU and perform parallelized computations inside a single core. The complete guide can be found here (https://software.intel.com/sites/landingpage/IntrinsicsGuide/).
+An intrinsic function is a function whose implementation is handled specially by the compiler and directly gives instructions to registers and ALUs. It is useful to control the work flow inside the CPU and perform parallelized computations inside a single core. The complete guide can be found here (https://software.intel.com/sites/landingpage/IntrinsicsGuide/).
 
-Intrinsics notation can really enhance the performances. However it requires some effort to program it. It is suggested to been used in small and specific parts of the code.
+Intrinsic notation can really enhance the performances. However it requires some effort in terms of programming. It is suggested to be used in small and specific parts of the code.
 
-To implement at its best this approach is required to use the aligned version of malloc
+To implement it at its best, it is required to use the aligned version of malloc
 ```c
 double* a= (double*) _mm_malloc(sizeof(double)*size,64);
 ```
@@ -109,4 +109,4 @@ Here below a table with the results obtained, after averaging over 5 runs on Uly
 time (s) | 0.032 | 0.110 | 0.037 | 0.025
 GFLOPs | 3.914 | 1.160 | 3.388 | 5.064
 
-We can easily see that the slowest approach is the *Lapack* implementation. This is because it is optimized for large size problems and in our case, when the size is small, overhead slows down the performances. The same rule is true for the AN implementation, which result slower than the Naive one (on average. In some cases it was slightly higher). The Intrinsic approach instead results by far the fastest.  
+Surprisingly, we can easily see that the slowest approach is the *Lapack* implementation. This is because it is optimized for large size problems and in our case, when the size is small, overhead slows down the performances. The same rule is true for the AN implementation, which result slower than the Naive one (on average. In some cases it was slightly higher). The Intrinsic approach instead results by far the fastest.  
